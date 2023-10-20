@@ -5,6 +5,7 @@ package apktool.kotlin.app
 
 
 import apktool.kotlin.lib.Apktool
+import java.io.File
 
 fun main(args: Array<String>) {
 
@@ -14,7 +15,13 @@ fun main(args: Array<String>) {
             decodeResource = false,
             cleanDecompilationFolder = true
     ).use {
-        it.export("Recompiled.apk")
+        val decompiledFiles: Array<File> = it.decompilationFolder!!.toFile().listFiles()!!
+
+        for (f: File in decompiledFiles) {
+            println("${f.absolutePath}")
+        }
+
+        it.export("Recompiled.apk", signApk = true)
     }
 
 
