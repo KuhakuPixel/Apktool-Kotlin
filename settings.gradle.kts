@@ -11,4 +11,4 @@ plugins {
 }
 
 rootProject.name = "Apktool-Kotlin"
-include("app", "lib")
+include("apktool-kotlin", "lib")
