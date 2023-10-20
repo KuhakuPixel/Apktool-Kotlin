@@ -6,8 +6,6 @@ package apktool.kotlin.app
 
 import apktool.kotlin.lib.Apktool
 import java.io.File
-import java.nio.file.Path
-import java.nio.file.Paths
 
 fun main(args: Array<String>) {
 
@@ -29,11 +27,24 @@ fun main(args: Array<String>) {
         // for folder, find the exact and replace
         for (f in billingClientFiles) {
             // write
+
             val text: String = f.readText()
+
+            // replace the string
             val newPackageToOverwrite = "\"com.kuhakupixel.purchaseserver\""
-            println("writting to ${f.absolutePath}")
-            text.replace("\"com.android.vending\"", newPackageToOverwrite)
-            text.replace("\"com.android.vending.billing.InAppBillingService.BIND\"", newPackageToOverwrite)
+
+            var newText = ""
+            newText = text.replace("\"com.android.vending\"", newPackageToOverwrite)
+            newText = newText.replace("\"com.android.vending.billing.InAppBillingService.BIND\"", newPackageToOverwrite)
+
+            // if something change, then write to it
+            if (text != newText) {
+                println("writting to ${f.absolutePath}")
+                println(newText)
+                f.printWriter().use { out ->
+                    out.print(newText)
+                }
+            }
         }
 
 
