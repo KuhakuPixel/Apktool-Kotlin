@@ -4,9 +4,18 @@
 package apktool.kotlin.app
 
 
-import org.apache.commons.text.WordUtils
+import apktool.kotlin.lib.Apktool
 
-fun main() {
+fun main(args: Array<String>) {
 
-    println("lol")
+
+    Apktool(
+            apkFile = args[0],
+            decodeResource = false,
+            cleanDecompilationFolder = true
+    ).use {
+        it.export("Recompiled.apk")
+    }
+
+
 }
