@@ -40,7 +40,6 @@ fun main(args: Array<String>) {
             // if something change, then write to it
             if (text != newText) {
                 println("writting to ${f.absolutePath}")
-                println(newText)
                 f.printWriter().use { out ->
                     out.print(newText)
                 }
