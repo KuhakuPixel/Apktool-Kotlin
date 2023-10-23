@@ -12,11 +12,16 @@ class Apktool(
         val cleanDecompilationFolder: Boolean = true,
 ) : AutoCloseable {
 
+    val manifestFile: File
+
     init {
 
         if (decompilationFolder == null) {
-            decompilationFolder = createTempDirectory(prefix = apkFile)
+            decompilationFolder = createTempDirectory(prefix = "Apktool-Kotlin")
         }
+        // init some predefined path
+        manifestFile = File(decompilationFolder.toString(), "AndroidManifest.xml")
+        // ============== do the decompilation ========================
         println("Apk ${apkFile} decompiled at ${decompilationFolder}")
         val cmd = mutableListOf("d", apkFile, "--output", decompilationFolder.toString(), "--force")
 
