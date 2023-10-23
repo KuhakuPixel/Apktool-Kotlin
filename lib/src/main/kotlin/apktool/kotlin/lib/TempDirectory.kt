@@ -6,7 +6,7 @@ import kotlin.io.path.createTempDirectory
 /**
  * class to create Temporary directory that will clean it self
  * */
-class TempDirectory(val prefix: String) : AutoCloseable {
+class TempDirectory(val prefix: String? = null) : AutoCloseable {
     val path: Path
 
     init {

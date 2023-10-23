@@ -3,9 +3,9 @@
  */
 package apktool.kotlin.lib
 
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
 import java.io.File
 
 class ApktoolTest {
@@ -15,7 +15,8 @@ class ApktoolTest {
     // https://stackoverflow.com/a/43415602/14073678
     val testApkPathStr = classLoader.getResource("app-debug.apk").file
 
-    @Test fun testDecompile() {
+    @Test
+    fun testDecompile() {
         Apktool(
                 apkFile = testApkPathStr,
                 decodeResource = true,
@@ -30,7 +31,8 @@ class ApktoolTest {
         }
     }
 
-    @Test fun `testDecompile decodeResource=false`() {
+    @Test
+    fun `testDecompile decodeResource=false`() {
         Apktool(
                 apkFile = testApkPathStr,
                 decodeResource = false,
@@ -40,6 +42,42 @@ class ApktoolTest {
             // have res folder but have resources.arsc
             assertTrue(it.resourceFolder.exists())
             assertTrue(it.resourceArscFile.exists())
+
+        }
+    }
+
+    @Test
+    fun `test decompile, patch and recompile`() {
+        // test replacing <uses-permission android:name="com.android.vending.BILLING"/> permission with
+        // <uses-permission android:name="android.permission.INTERNET"/>
+        val textInManifestToRemove = "<uses-permission android:name=\"com.android.vending.BILLING\"/>"
+        val textInManifestToBeAdded = "<uses-permission android:name=\"android.permission.INTERNET\"/>"
+
+        Apktool(
+
+                apkFile = testApkPathStr,
+                decodeResource = true,
+        ).use { apktool ->
+            assertTrue(apktool.manifestFile.readText().contains(textInManifestToRemove))
+            assertFalse(apktool.manifestFile.readText().contains(textInManifestToBeAdded))
+            // replace and write back to the manifest
+            val newManifestContent = apktool.manifestFile.readText().replace(textInManifestToRemove, textInManifestToBeAdded)
+            apktool.manifestFile.printWriter().use { out ->
+                out.print(newManifestContent)
+            }
+            // export in temp dir and check assert [textInManifestToRemove] is removed
+            TempDirectory().use { tempDir ->
+                val exportedApkPath: File = File(tempDir.path.toString(), "exported.apk")
+                apktool.export(exportedApkPath, signApk = true)
+                // decompile the apk again and read the manifest
+                // to make sure the permission has been replaced
+                Apktool(apkFile = exportedApkPath.toString(), decodeResource = true).use { apktool2 ->
+                    assertFalse(apktool2.manifestFile.readText().contains(textInManifestToRemove))
+                    assertTrue(apktool2.manifestFile.readText().contains(textInManifestToBeAdded))
+
+                }
+            }
+
 
         }
     }

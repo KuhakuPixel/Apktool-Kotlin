@@ -7,13 +7,14 @@ import kotlin.io.path.createTempDirectory
 class Apktool(
         val apkFile: String,
         val decodeResource: Boolean,
-        val useAapt2: Boolean = false,
+        val useAapt2: Boolean = true,
         var decompilationFolder: Path? = null,
         val cleanDecompilationFolder: Boolean = true,
 ) : AutoCloseable {
 
     val manifestFile: File
     val resourceFolder: File
+
     // only exist if [decodeResource] == true
     val resourceArscFile: File
 
@@ -38,7 +39,7 @@ class Apktool(
 
     }
 
-    fun export(apkOutFile: String, signApk: Boolean = false) {
+    fun export(apkOutFile: String, signApk: Boolean) {
         val cmd = mutableListOf("b", decompilationFolder.toString(), "--output", apkOutFile)
 
         if (useAapt2)
@@ -50,6 +51,10 @@ class Apktool(
             ApkSigner.sign(File(apkOutFile))
 
 
+    }
+
+    fun export(apkOutFile: File, signApk: Boolean) {
+        export(apkOutFile = apkOutFile.absoluteFile.toString(), signApk = signApk)
     }
 
     override fun close() {
