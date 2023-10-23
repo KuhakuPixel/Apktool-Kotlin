@@ -13,6 +13,9 @@ class Apktool(
 ) : AutoCloseable {
 
     val manifestFile: File
+    val resourceFolder: File
+    // only exist if [decodeResource] == true
+    val resourceArscFile: File
 
     init {
 
@@ -21,6 +24,8 @@ class Apktool(
         }
         // init some predefined path
         manifestFile = File(decompilationFolder.toString(), "AndroidManifest.xml")
+        resourceFolder = File(decompilationFolder.toString(), "res")
+        resourceArscFile = File(decompilationFolder.toString(), "resources.arsc")
         // ============== do the decompilation ========================
         println("Apk ${apkFile} decompiled at ${decompilationFolder}")
         val cmd = mutableListOf("d", apkFile, "--output", decompilationFolder.toString(), "--force")

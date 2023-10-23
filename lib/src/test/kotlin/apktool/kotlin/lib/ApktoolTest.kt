@@ -20,9 +20,27 @@ class ApktoolTest {
                 apkFile = testApkPathStr,
                 decodeResource = true,
         ).use {
-            // have some manifest
+            // have manifest
             assertTrue(it.manifestFile.exists())
             assertTrue(it.manifestFile.readText().contains("<uses-permission android:name=\"com.android.vending.BILLING\"/>"))
+            // have res folder, but shouldn't have resources.arsc (the compiled resource in binary form https://stackoverflow.com/a/30768318/14073678)
+            // because apktool should decode the resource
+            assertTrue(it.resourceFolder.exists())
+            assertFalse(it.resourceArscFile.exists())
+        }
+    }
+
+    @Test fun `testDecompile decodeResource=false`() {
+        Apktool(
+                apkFile = testApkPathStr,
+                decodeResource = false,
+        ).use {
+            // have some manifest
+            assertTrue(it.manifestFile.exists())
+            // have res folder but have resources.arsc
+            assertTrue(it.resourceFolder.exists())
+            assertTrue(it.resourceArscFile.exists())
+
         }
     }
 }
