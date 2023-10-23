@@ -81,4 +81,24 @@ class ApktoolTest {
 
         }
     }
+
+    @Test
+    fun `testDecompile with custom decompilation path`() {
+        TempDirectory().use { tempDir ->
+
+            Apktool(
+                    apkFile = testApkPathStr,
+                    decodeResource = false,
+                    decompilationFolder = tempDir.path
+            ).use {
+                // check if its decompiled in the directory that we specify
+                // by checking the existence of AndroidManifest.xml at the root of [tempDir] directory
+                val manifestFile = File(tempDir.path.toString(), "AndroidManifest.xml")
+                assertTrue(manifestFile.exists())
+
+            }
+
+
+        }
+    }
 }

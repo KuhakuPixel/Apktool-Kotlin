@@ -20,9 +20,8 @@ class Apktool(
 
     init {
 
-        if (decompilationFolder == null) {
+        if (decompilationFolder == null)
             decompilationFolder = createTempDirectory(prefix = "Apktool-Kotlin")
-        }
         // init some predefined path
         manifestFile = File(decompilationFolder.toString(), "AndroidManifest.xml")
         resourceFolder = File(decompilationFolder.toString(), "res")
