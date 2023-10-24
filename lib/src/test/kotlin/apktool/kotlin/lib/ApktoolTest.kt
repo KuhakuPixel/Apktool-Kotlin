@@ -13,7 +13,7 @@ class ApktoolTest {
     var classLoader = javaClass.classLoader
 
     // https://stackoverflow.com/a/43415602/14073678
-    val testApkPathStr = classLoader.getResource("app-debug.apk").file
+    val testApkPathStr = classLoader.getResource("app-debug.apk")!!.file
 
     @Test
     fun testDecompile() {
@@ -67,7 +67,7 @@ class ApktoolTest {
             }
             // export in temp dir and check assert [textInManifestToRemove] is removed
             TempDirectory().use { tempDir ->
-                val exportedApkPath: File = File(tempDir.path.toString(), "exported.apk")
+                val exportedApkPath: File = File(tempDir.directory.toString(), "exported.apk")
                 apktool.export(exportedApkPath, signApk = true)
                 // decompile the apk again and read the manifest
                 // to make sure the permission has been replaced
@@ -89,11 +89,11 @@ class ApktoolTest {
             Apktool(
                     apkFile = testApkPathStr,
                     decodeResource = false,
-                    decompilationFolder = tempDir.path
+                    decompilationFolder = tempDir.directory
             ).use {
                 // check if its decompiled in the directory that we specify
                 // by checking the existence of AndroidManifest.xml at the root of [tempDir] directory
-                val manifestFile = File(tempDir.path.toString(), "AndroidManifest.xml")
+                val manifestFile = File(tempDir.directory.toString(), "AndroidManifest.xml")
                 assertTrue(manifestFile.exists())
 
             }

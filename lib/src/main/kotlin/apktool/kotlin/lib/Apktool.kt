@@ -1,14 +1,13 @@
 package apktool.kotlin.lib
 
 import java.io.File
-import java.nio.file.Path
 import kotlin.io.path.createTempDirectory
 
 class Apktool(
         val apkFile: String,
         val decodeResource: Boolean,
         val useAapt2: Boolean = true,
-        var decompilationFolder: Path? = null,
+        var decompilationFolder: File? = null,
         val cleanDecompilationFolder: Boolean = true,
 ) : AutoCloseable {
 
@@ -21,7 +20,7 @@ class Apktool(
     init {
 
         if (decompilationFolder == null)
-            decompilationFolder = createTempDirectory(prefix = "Apktool-Kotlin")
+            decompilationFolder = createTempDirectory(prefix = "Apktool-Kotlin").toFile()
         // init some predefined path
         manifestFile = File(decompilationFolder.toString(), "AndroidManifest.xml")
         resourceFolder = File(decompilationFolder.toString(), "res")
@@ -60,7 +59,7 @@ class Apktool(
 
         // clean up
         if (cleanDecompilationFolder)
-            decompilationFolder!!.toFile().deleteRecursively()
+            decompilationFolder!!.deleteRecursively()
     }
 
 }

@@ -15,10 +15,10 @@ fun main(args: Array<String>) {
             decodeResource = false,
             cleanDecompilationFolder = false
     ).use {
-        val decompiledFiles: Array<File> = it.decompilationFolder!!.toFile().listFiles()!!
+        val decompiledFiles: Array<File> = it.decompilationFolder!!.listFiles()!!
 
         for (f: File in decompiledFiles) {
-            println("${f.absolutePath}")
+            println(f.absolutePath)
         }
         // ============== begin the patch process ================
         val apiFolderPath = File(it.decompilationFolder.toString(), "smali/com/android/billingclient/api/")
@@ -33,8 +33,7 @@ fun main(args: Array<String>) {
             // replace the string
             val newPackageToOverwrite = "\"com.kuhakupixel.purchaseserver\""
 
-            var newText = ""
-            newText = text.replace("\"com.android.vending\"", newPackageToOverwrite)
+            var newText = text.replace("\"com.android.vending\"", newPackageToOverwrite)
             newText = newText.replace("\"com.android.vending.billing.InAppBillingService.BIND\"", newPackageToOverwrite)
 
             // if something change, then write to it

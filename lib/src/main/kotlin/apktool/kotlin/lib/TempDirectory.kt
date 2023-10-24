@@ -1,19 +1,19 @@
 package apktool.kotlin.lib
 
-import java.nio.file.Path
+import java.io.File
 import kotlin.io.path.createTempDirectory
 
 /**
  * class to create Temporary directory that will clean it self
  * */
-class TempDirectory(val prefix: String? = null) : AutoCloseable {
-    val path: Path
+class TempDirectory(prefix: String? = null) : AutoCloseable {
+    val directory: File
 
     init {
-        path = createTempDirectory(prefix = prefix)
+        directory = createTempDirectory(prefix = prefix).toFile()
     }
 
     override fun close() {
-        path.toFile().deleteRecursively()
+        directory.deleteRecursively()
     }
 }
