@@ -9,6 +9,10 @@ import java.io.File
 
 fun main(args: Array<String>) {
 
+    // replace the string
+    val packageToBeAdded = "\"com.kuhakupixel.purchaseserver\""
+    val packageToBeRemoved1 = "\"com.android.vending\""
+    val packageToBeRemoved2 = "\"com.android.vending.billing.InAppBillingService.BIND\""
 
     Apktool(
             apkFile = args[0],
@@ -30,15 +34,17 @@ fun main(args: Array<String>) {
 
             val text: String = f.readText()
 
-            // replace the string
-            val newPackageToOverwrite = "\"com.kuhakupixel.purchaseserver\""
+            if (text.contains(packageToBeRemoved1) && text.contains(packageToBeRemoved2)) {
+                var newText = text.replace(packageToBeRemoved1, packageToBeAdded)
+                newText = newText.replace(packageToBeRemoved2, packageToBeAdded)
 
-            var newText = text.replace("\"com.android.vending\"", newPackageToOverwrite)
-            newText = newText.replace("\"com.android.vending.billing.InAppBillingService.BIND\"", newPackageToOverwrite)
-
-            // if something change, then write to it
-            if (text != newText) {
-                println("writting to ${f.absolutePath}")
+                // replace with normal log
+                val logSmaliInstruction = "Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I"
+                println("New text: ${newText}")
+                newText = newText.replace("Lcom/google/android/gms/internal/play_billing/zzb;->zzo(Ljava/lang/String;Ljava/lang/String;)V", logSmaliInstruction)
+                newText = newText.replace("Lcom/google/android/gms/internal/play_billing/zzb;->zzn(Ljava/lang/String;Ljava/lang/String;)V", logSmaliInstruction)
+                //
+                println("writing to ${f.absolutePath}")
                 f.printWriter().use { out ->
                     out.print(newText)
                 }
