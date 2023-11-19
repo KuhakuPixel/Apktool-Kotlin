@@ -10,9 +10,12 @@ import java.io.File
 fun main(args: Array<String>) {
 
     // replace the string
-    val packageToBeAdded = "\"com.kuhakupixel.purchaseserver\""
+
     val packageToBeRemoved1 = "\"com.android.vending\""
+    val packageToBeAdded1 = "\"org.billinghack\""
     val packageToBeRemoved2 = "\"com.android.vending.billing.InAppBillingService.BIND\""
+
+    val packageToBeAdded2 = "\"org.billinghack.BillingService.BIND\""
 
     Apktool(
             apkFile = args[0],
@@ -35,8 +38,8 @@ fun main(args: Array<String>) {
             val text: String = f.readText()
 
             if (text.contains(packageToBeRemoved1) && text.contains(packageToBeRemoved2)) {
-                var newText = text.replace(packageToBeRemoved1, packageToBeAdded)
-                newText = newText.replace(packageToBeRemoved2, packageToBeAdded)
+                var newText = text.replace(packageToBeRemoved1, packageToBeAdded1)
+                newText = newText.replace(packageToBeRemoved2, packageToBeAdded2)
 
                 // replace with normal log
                 val logSmaliInstruction = "Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I"
