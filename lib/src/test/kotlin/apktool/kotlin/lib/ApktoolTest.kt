@@ -101,4 +101,47 @@ class ApktoolTest {
 
         }
     }
+
+    @Test
+    fun `test injectPermissionName, decodeResource = true`() {
+
+        val permissionToAdd = "<uses-permission android:name=\"android.permission.QUERY_ALL_PACKAGES\"/>"
+        Apktool(
+                apkFile = testApkPathStr,
+                decodeResource = true,
+        ).use {
+            val originalContent = it.manifestFile.readLines()
+
+            assertFalse(originalContent.contains(permissionToAdd))
+            it.injectPermissionName("android.permission.QUERY_ALL_PACKAGES")
+
+            val newContent = it.manifestFile.readLines()
+            assertTrue(newContent.contains(permissionToAdd))
+        }
+
+    }
+
+    @Test
+    fun `test injectPermissionName, decodeResource = false`() {
+
+        val permissionToAdd = "<uses-permission android:name=\"android.permission.QUERY_ALL_PACKAGES\"/>"
+        Apktool(
+                apkFile = testApkPathStr,
+                decodeResource = false,
+        ).use {
+            val originalContent = it.manifestFile.readLines()
+
+            assertFalse(originalContent.contains(permissionToAdd))
+            // needs to throw exception when we don't decodeResource
+            // when trying to inject permission
+            try {
+                it.injectPermissionName("android.permission.QUERY_ALL_PACKAGES")
+                assert(false)
+            } catch (e: IllegalStateException) {
+                assert(true)
+
+            }
+        }
+
+    }
 }

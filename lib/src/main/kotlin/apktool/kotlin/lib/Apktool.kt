@@ -1,6 +1,7 @@
 package apktool.kotlin.lib
 
 import java.io.File
+import java.lang.IllegalStateException
 import kotlin.io.path.createTempDirectory
 
 class Apktool(
@@ -53,6 +54,34 @@ class Apktool(
 
     fun export(apkOutFile: File, signApk: Boolean) {
         export(apkOutFile = apkOutFile.absoluteFile.toString(), signApk = signApk)
+    }
+
+    // need to throw exception when decodeResource is false
+    fun injectPermissionName(permissionName: String) {
+
+        // need to decode resource in order to have readable text of the manifest
+        if (!this.decodeResource) {
+            throw IllegalStateException("decodeResource must be true, when injecting permission to AndroidManifest.xml")
+        }
+
+        val currentContent: MutableList<String> = this.manifestFile.readLines().toMutableList()
+
+        // find injection point
+        for (i in currentContent.indices) {
+
+            if (currentContent[i].contains("<manifest xmlns:android")) {
+                // insert the permission after  <manifest xmlns:android ...
+                currentContent.add(i + 1, "<uses-permission android:name=\"${permissionName}\"/>")
+            }
+
+        }
+
+        // rewrite the content back
+        // not so efficient but will do for now
+        this.manifestFile.printWriter().use { out ->
+            out.print(currentContent.joinToString(separator = "\n"))
+        }
+
     }
 
     override fun close() {
