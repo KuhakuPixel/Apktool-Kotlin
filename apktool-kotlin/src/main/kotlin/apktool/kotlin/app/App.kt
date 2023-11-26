@@ -5,22 +5,44 @@ package apktool.kotlin.app
 
 
 import apktool.kotlin.lib.Apktool
+import kotlinx.cli.ArgParser
+import kotlinx.cli.ArgType
+import kotlinx.cli.default
+import kotlinx.cli.required
 import java.io.File
 
 fun main(args: Array<String>) {
+    // arg parsing
+    val parser = ArgParser("patcher :)")
+    val input by parser.option(ArgType.String, shortName = "i", description = "Input file").required()
+    val redirectToLuckyPatcher by parser.option(ArgType.Boolean, shortName = "lp", description = "redirect to lucky patcher").default(false)
+    parser.parse(args)
+    //
 
     // replace the string
+    val originalPackageName = "\"com.android.vending\""
+    var newPackageName = ""
 
-    val packageToBeRemoved1 = "\"com.android.vending\""
-    val packageToBeAdded1 = "\"org.billinghack\""
-    val packageToBeRemoved2 = "\"com.android.vending.billing.InAppBillingService.BIND\""
+    val originalServiceToConnectToName = "\"com.android.vending.billing.InAppBillingService.BIND\""
+    var newServiceToConnectToName = ""
 
-    val packageToBeAdded2 = "\"org.billinghack.BillingService.BIND\""
+    if (redirectToLuckyPatcher) {
+        println("redirecting purchases to lucky patcher")
+        newPackageName = "\"com.android.vending.billing.InAppBillingService.BINN\""
+        newServiceToConnectToName = "\"com.android.vending.billing.InAppBillingService.BINN\""
+    } else {
+        println("redirecting purchases to own service")
+        // redirect to our own
+        newPackageName = "\"org.billinghack\""
+        newServiceToConnectToName = "\"org.billinghack.BillingService.BIND\""
 
+    }
+
+    // =========================================== begin patch =============================
     Apktool(
-            apkFile = args[0],
-            decodeResource = false,
-            cleanDecompilationFolder = false
+            apkFile = input,
+            decodeResource = true,
+            cleanDecompilationFolder = true
     ).use {
         val decompiledFiles: Array<File> = it.decompilationFolder!!.listFiles()!!
 
@@ -37,13 +59,13 @@ fun main(args: Array<String>) {
 
             val text: String = f.readText()
 
-            if (text.contains(packageToBeRemoved1) && text.contains(packageToBeRemoved2)) {
-                var newText = text.replace(packageToBeRemoved1, packageToBeAdded1)
-                newText = newText.replace(packageToBeRemoved2, packageToBeAdded2)
+            if (text.contains(originalPackageName) && text.contains(originalServiceToConnectToName)) {
+                var newText = text.replace(originalPackageName, newPackageName)
+                newText = newText.replace(originalServiceToConnectToName, newServiceToConnectToName)
 
                 // replace with normal log
                 val logSmaliInstruction = "Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I"
-                println("New text: ${newText}")
+                // println("New text: ${newText}")
                 newText = newText.replace("Lcom/google/android/gms/internal/play_billing/zzb;->zzo(Ljava/lang/String;Ljava/lang/String;)V", logSmaliInstruction)
                 newText = newText.replace("Lcom/google/android/gms/internal/play_billing/zzb;->zzn(Ljava/lang/String;Ljava/lang/String;)V", logSmaliInstruction)
                 //
@@ -53,8 +75,10 @@ fun main(args: Array<String>) {
                 }
             }
         }
-
-
+        println("injecting permission")
+        // inject permission for querying other package's services
+        it.injectPermissionName("android.permission.QUERY_ALL_PACKAGES")
+        //
         it.export("Recompiled.apk", signApk = true)
     }
 

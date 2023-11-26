@@ -8,6 +8,7 @@ plugins {
 
 dependencies {
     implementation("org.apache.commons:commons-text")
+    implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.6")
     implementation(project(":lib"))
 }
 
