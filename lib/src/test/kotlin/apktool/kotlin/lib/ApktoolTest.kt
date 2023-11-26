@@ -3,8 +3,7 @@
  */
 package apktool.kotlin.lib
 
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.io.File
 
@@ -14,6 +13,7 @@ class ApktoolTest {
 
     // https://stackoverflow.com/a/43415602/14073678
     val testApkPathStr = classLoader.getResource("app-debug.apk")!!.file
+    val APK_SMALI_FOLDER_COUNT = 10
 
     @Test
     fun testDecompile() {
@@ -141,6 +141,43 @@ class ApktoolTest {
                 assert(true)
 
             }
+        }
+
+    }
+
+    @Test
+    fun `TestIterateSmaliClassesFolder`() {
+        val expectedSmaliFolder: MutableList<String> = mutableListOf()
+
+        for (i in 0 until APK_SMALI_FOLDER_COUNT) {
+            if (i == 0)
+                expectedSmaliFolder.add("smali")
+            else
+                expectedSmaliFolder.add("smali_classes${i + 1}")
+        }
+
+        val iteratedSmaliFolder: MutableList<String> = mutableListOf()
+        Apktool(
+                apkFile = testApkPathStr,
+                decodeResource = false,
+        ).use {
+            it.IterateSmaliClassesFolder {
+                iteratedSmaliFolder.add(it.name)
+            }
+        }
+        // sort to make sure
+        assertEquals(expectedSmaliFolder.sorted(), iteratedSmaliFolder.sorted())
+
+    }
+
+    @Test
+    fun `TestGetSmaliClassesCount`() {
+        Apktool(
+                apkFile = testApkPathStr,
+                decodeResource = false,
+        ).use {
+            assertEquals(APK_SMALI_FOLDER_COUNT, it.GetSmaliClassesCount())
+
         }
 
     }

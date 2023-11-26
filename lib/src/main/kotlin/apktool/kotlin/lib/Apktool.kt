@@ -1,7 +1,6 @@
 package apktool.kotlin.lib
 
 import java.io.File
-import java.lang.IllegalStateException
 import kotlin.io.path.createTempDirectory
 
 class Apktool(
@@ -37,6 +36,32 @@ class Apktool(
         brut.apktool.Main.main(cmd.toTypedArray())
 
     }
+
+    fun IterateSmaliClassesFolder(onIterate: (smaliFolder: File) -> Unit) {
+        val files = this.decompilationFolder!!.listFiles()!!
+        for (i in files.indices) {
+            // the first smali folder starts with "smali" and rest starts with  "smali_classes2"
+            // can't only check for startsWith("smali") because there are some folder like "smali_assets"
+            // that aren't part of the main dex class and will only mess up the [count]
+            if (files[i].name == "smali" || files[i].name.startsWith("smali_classes")) {
+                if (files[i].isDirectory)
+                    onIterate(files[i])
+            }
+        }
+
+    }
+
+    fun GetSmaliClassesCount(): Int {
+
+        var count: Int = 0
+        IterateSmaliClassesFolder(onIterate = {
+            count += 1
+
+        })
+        return count
+
+    }
+
 
     fun export(apkOutFile: String, signApk: Boolean) {
         val cmd = mutableListOf("b", decompilationFolder.toString(), "--output", apkOutFile)
@@ -81,6 +106,7 @@ class Apktool(
         this.manifestFile.printWriter().use { out ->
             out.print(currentContent.joinToString(separator = "\n"))
         }
+
 
     }
 
