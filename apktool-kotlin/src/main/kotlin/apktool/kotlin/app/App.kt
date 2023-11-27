@@ -10,6 +10,7 @@ import kotlinx.cli.ArgType
 import kotlinx.cli.default
 import kotlinx.cli.required
 import java.io.File
+import java.lang.RuntimeException
 
 fun main(args: Array<String>) {
     // arg parsing
@@ -50,31 +51,34 @@ fun main(args: Array<String>) {
             println(f.absolutePath)
         }
         // ============== begin the patch process ================
-        val apiFolderPath = File(it.decompilationFolder.toString(), "smali/com/android/billingclient/api/")
-        val billingClientFiles: Array<File> = apiFolderPath.listFiles()
-
-        // for folder, find the exact and replace
-        for (f in billingClientFiles) {
-            // write
-
-            val text: String = f.readText()
-
-            if (text.contains(originalPackageName) && text.contains(originalServiceToConnectToName)) {
-                var newText = text.replace(originalPackageName, newPackageName)
-                newText = newText.replace(originalServiceToConnectToName, newServiceToConnectToName)
-
-                // replace with normal log
-                val logSmaliInstruction = "Landroid/util/Log;->d(Ljava/lang/String;Ljava/lang/String;)I"
-                // println("New text: ${newText}")
-                newText = newText.replace("Lcom/google/android/gms/internal/play_billing/zzb;->zzo(Ljava/lang/String;Ljava/lang/String;)V", logSmaliInstruction)
-                newText = newText.replace("Lcom/google/android/gms/internal/play_billing/zzb;->zzn(Ljava/lang/String;Ljava/lang/String;)V", logSmaliInstruction)
-                //
-                println("writing to ${f.absolutePath}")
-                f.printWriter().use { out ->
-                    out.print(newText)
+        // make sure we found billing client library
+        var containsPatch = false
+        it.IterateSmaliClassesFolder {
+            val currentFolder = File(it.toString(), "com/android/billingclient/api/")
+            // make sure folder  exist
+            if (currentFolder.exists()){
+                val billingClientFiles: Array<File> = currentFolder!!.listFiles()!!
+                // for folder, find the exact and replace
+                for (f in billingClientFiles) {
+                    // write
+                    val text: String = f.readText()
+                    var newText = text.replace(originalPackageName, newPackageName)
+                    newText = newText.replace(originalServiceToConnectToName, newServiceToConnectToName)
+                    // write back changes when succsess
+                    if (text!=newText){
+                        println("writing to ${f.absolutePath}")
+                        containsPatch = true
+                        f.printWriter().use { out ->
+                            out.print(newText)
+                        }
+                    }
                 }
             }
         }
+        if (!containsPatch){
+            throw RuntimeException("nothing is patched :(")
+        }
+
         println("injecting permission")
         // inject permission for querying other package's services
         it.injectPermissionName("android.permission.QUERY_ALL_PACKAGES")
