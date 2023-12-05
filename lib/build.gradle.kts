@@ -8,6 +8,6 @@ plugins {
 
 dependencies {
     // https://stackoverflow.com/questions/54166069/how-do-you-add-local-jar-file-dependency-to-build-gradle-kt-file
-    implementation(files("${projectDir}/lib-jar/apktool-cli-all_2.8.1.jar"))
+    implementation(files("${projectDir}/lib-jar/apktool-cli-all.jar"))
     implementation(files("${projectDir}/lib-jar/uber-apk-signer-1.3.0.jar"))
 }

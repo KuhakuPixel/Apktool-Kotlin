@@ -12,38 +12,56 @@ import kotlinx.cli.required
 import java.io.File
 import java.lang.RuntimeException
 
-fun main(args: Array<String>) {
-    // arg parsing
-    val parser = ArgParser("patcher :)")
-    val input by parser.option(ArgType.String, shortName = "i", description = "Input file").required()
-    val redirectToLuckyPatcher by parser.option(ArgType.Boolean, shortName = "lp", description = "redirect to lucky patcher").default(false)
-    parser.parse(args)
-    //
 
+val ORIGINAL_BILLING_CLIENT_FOLDER_PATH = "com/android/billingclient/api/"
+
+fun patchStringContent(content: String, redirectToLuckyPatcher: Boolean = false): String {
     // replace the string
     val originalPackageName = "\"com.android.vending\""
     var newPackageName = ""
 
     val originalServiceToConnectToName = "\"com.android.vending.billing.InAppBillingService.BIND\""
     var newServiceToConnectToName = ""
-
     if (redirectToLuckyPatcher) {
-        println("redirecting purchases to lucky patcher")
         newPackageName = "\"com.android.vending.billing.InAppBillingService.BINN\""
         newServiceToConnectToName = "\"com.android.vending.billing.InAppBillingService.BINN\""
     } else {
-        println("redirecting purchases to own service")
         // redirect to our own
         newPackageName = "\"org.billinghack\""
         newServiceToConnectToName = "\"org.billinghack.BillingService.BIND\""
 
     }
 
+    var newText = content
+    // replace if contains both the package and service
+    if (content.contains(originalPackageName) && content.contains(originalServiceToConnectToName)) {
+        newText = content.replace(originalPackageName, newPackageName)
+        newText = newText.replace(originalServiceToConnectToName, newServiceToConnectToName)
+    }
+    return newText
+}
+
+fun main(args: Array<String>) {
+    // arg parsing
+    val parser = ArgParser("patcher :)")
+    val inputFile by parser.option(ArgType.String, shortName = "i", description = "Input file").required()
+    val redirectToLuckyPatcher by parser.option(ArgType.Boolean, shortName = "lp", description = "redirect to lucky patcher").default(false)
+    val keepDecompilationFolder by parser.option(ArgType.Boolean, shortName = "k", fullName = "keep-decompilation-dir", description = "keep decompilation directory").default(false)
+    parser.parse(args)
+
+    //
+
+    if (redirectToLuckyPatcher) {
+        println("redirecting purchases to lucky patcher")
+    } else {
+        println("redirecting purchases to own service")
+    }
     // =========================================== begin patch =============================
     Apktool(
-            apkFile = input,
+            apkFile = inputFile,
             decodeResource = true,
-            cleanDecompilationFolder = true
+            cleanDecompilationFolder = !keepDecompilationFolder,
+            useAapt2 = true,
     ).use {
         val decompiledFiles: Array<File> = it.decompilationFolder!!.listFiles()!!
 
@@ -54,36 +72,76 @@ fun main(args: Array<String>) {
         // make sure we found billing client library
         var containsPatch = false
         it.IterateSmaliClassesFolder {
-            val currentFolder = File(it.toString(), "com/android/billingclient/api/")
+
+            val currentFolder = File(it.toString(), ORIGINAL_BILLING_CLIENT_FOLDER_PATH)
             // make sure folder  exist
-            if (currentFolder.exists()){
+            if (currentFolder.exists()) {
                 val billingClientFiles: Array<File> = currentFolder!!.listFiles()!!
                 // for folder, find the exact and replace
                 for (f in billingClientFiles) {
                     // write
                     val text: String = f.readText()
-                    var newText = text.replace(originalPackageName, newPackageName)
-                    newText = newText.replace(originalServiceToConnectToName, newServiceToConnectToName)
+                    var newText = patchStringContent(text, redirectToLuckyPatcher)
                     // write back changes when succsess
-                    if (text!=newText){
+                    if (text != newText) {
                         println("writing to ${f.absolutePath}")
                         containsPatch = true
                         f.printWriter().use { out ->
                             out.print(newText)
                         }
+                        break
                     }
                 }
             }
         }
-        if (!containsPatch){
-            throw RuntimeException("nothing is patched :(")
+
+        if (!containsPatch) {
+            println("${ORIGINAL_BILLING_CLIENT_FOLDER_PATH} not found, billing client seems to be obfuscated, trying another way ... ")
+            it.IterateSmaliClassesFolder {
+                File(it.toString()).walkTopDown().forEach { f: File ->
+                    if (f.isFile) {
+                        println("checking: ....${f}")
+                        val text: String = f.readText()
+                        var newText = patchStringContent(text, redirectToLuckyPatcher)
+                        // write back changes when succsess
+                        if (text != newText) {
+                            println("writing to ${f.absolutePath}")
+                            containsPatch = true
+                            f.printWriter().use { out ->
+                                out.print(newText)
+                                return@IterateSmaliClassesFolder
+                            }
+                        }
+                    }
+                }
+            }
         }
+        if (!containsPatch) {
+            println("warning: nothing is pathched :(")
+        }
+
+        /*
+        // fixing patch error https://github.com/iBotPeaches/Apktool/issues/2761#issuecomment-1052327418
+        File(it.decompilationFolder.toString()).walkTopDown().forEach { f: File ->
+            if (f.isFile && f.name == "colors.xml") {
+                val text: String = f.readText()
+                var newText = text.replace("@android", "@*android")
+                // write back changes when succsess
+                println("writing to ${f.absolutePath}")
+                f.printWriter().use { out ->
+                    out.print(newText)
+                }
+            }
+        }
+         */
+
+
 
         println("injecting permission")
         // inject permission for querying other package's services
         it.injectPermissionName("android.permission.QUERY_ALL_PACKAGES")
         //
-        it.export("Recompiled.apk", signApk = true)
+        it.export(inputFile, signApk = false)
     }
 
 
