@@ -1,46 +1,37 @@
-# How To Patch for billing 
+# ApkTool-kotlin
 
-install from https://drive.google.com/drive/folders/1cle84kt7aykYzfCHa0pYXbw0Gbcn2dG7?usp=sharing
-## Prerequisite
-- modder
-- apktool-kotlin
-- billing hack apk installed on your device
+A kotlin/java library to use [ApkTool](https://github.com/iBotPeaches/Apktool)
+programatically and provides good api
 
+currently apktool's [maven build are broken](https://github.com/iBotPeaches/Apktool/issues/1142) and its api aren't that good to be used
+as library
 
-## installing billing hack server on ur phone
-
-just install the apk from the google drive okay?
-
+## Features
+- apk signing via [uber-apk-signer](https://github.com/patrickfav/uber-apk-signer)
+- inject permission to `AndroidManifest.xml`
 
 
-## 
+## Usage
 
+full example of usage [here](./apktool-kotlin/src/main/kotlin/apktool/kotlin/app/App.kt)
 
-download apk first to your computer for patching
-```sh
-modder download [APK_PACKAGE_NAME]
-```
+## Download 
 
-after download, the apk should be installed in [APK_PACKAGE_NAME]
-patch the apk, to redirect all purchases to our own server
+- add `maven { url "https://jitpack.io" }` in `settings.gradle`
 
-(need to patch `base.apk`)
-```sh
-cd [APK_PACKAGE_NAME]
-apktool-kotlin -i base.apk
-```
-
-now you need to sign all of the apk (if any multiple in the folder)
+```groovy
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://jitpack.io" }
+    }
+}
 
 ```
-modder sign *.apk
-```
-
-now everything should be ready for testing
-just delete the old apk from your phone
-and install the original version
-
-```
-cd ..
-modder install [APK_PACKAGE_NAME]
+add to your app's `build.gradle`
+```groovy
+dependencies {
+}
 ```
