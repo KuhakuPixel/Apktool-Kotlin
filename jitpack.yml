@@ -2,4 +2,4 @@
 # so need to upgrade to java 17
 # https://stackoverflow.com/a/76083051/14073678
 jdk:
-  - openjdk17
+  - openjdk11
