@@ -34,6 +34,6 @@ add to your app's `build.gradle`
 ```groovy
 
 dependencies {
-    implementation 'com.github.KuhakuPixel:Apktool-Kotlin:0.0.1'
+    implementation 'com.github.KuhakuPixel:Apktool-Kotlin:0.0.2'
 }
 ```
