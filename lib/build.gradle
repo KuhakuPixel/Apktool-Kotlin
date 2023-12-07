@@ -4,6 +4,9 @@
 
 plugins {
     id 'apktool.kotlin.kotlin-library-conventions'
+    // use shadow jar to include preexisting jar file in jitpack build
+    // https://jitpack.io/docs/FAQ/
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
 dependencies {
