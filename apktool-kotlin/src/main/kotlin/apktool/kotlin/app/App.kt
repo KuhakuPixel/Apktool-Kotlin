@@ -4,13 +4,13 @@
 package apktool.kotlin.app
 
 
+import apktool.kotlin.lib.AaptManager
 import apktool.kotlin.lib.Apktool
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.default
 import kotlinx.cli.required
 import java.io.File
-import java.lang.RuntimeException
 
 
 val ORIGINAL_BILLING_CLIENT_FOLDER_PATH = "com/android/billingclient/api/"
@@ -42,6 +42,8 @@ fun patchStringContent(content: String, redirectToLuckyPatcher: Boolean = false)
 }
 
 fun main(args: Array<String>) {
+    println("aapt2 from apktool's path: ${AaptManager.getAapt2()}")
+
     // arg parsing
     val parser = ArgParser("patcher :)")
     val inputFile by parser.option(ArgType.String, shortName = "i", description = "Input file").required()
@@ -50,7 +52,7 @@ fun main(args: Array<String>) {
     parser.parse(args)
 
     //
-
+    //
     if (redirectToLuckyPatcher) {
         println("redirecting purchases to lucky patcher")
     } else {
