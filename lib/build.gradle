@@ -4,6 +4,7 @@
 
 plugins {
     id 'apktool.kotlin.kotlin-library-conventions'
+    id 'maven-publish'
 }
 
 dependencies {
